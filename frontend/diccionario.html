@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Diccionario médico - SaludRural</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/custom.css">
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-sr navbar-dark">
+  <div class="container">
+    <a class="navbar-brand d-flex align-items-center" href="index.html">
+      <img src="assets/img/logo.svg" alt="SaludRural" style="height:36px;margin-right:8px;">
+      SaludRural
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="nav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="index.html">Inicio</a></li>
+        <li class="nav-item"><a class="nav-link" href="explorar_medicos.html">Explorar médicos</a></li>
+        <li class="nav-item"><a class="nav-link" href="diccionario.html">Diccionario</a></li>
+        <li class="nav-item"><a class="nav-link" href="login.html">Iniciar sesión</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="container section">
+  <h2>Diccionario médico</h2>
+  <p class="small-muted">Busque términos y enfermedades. Visible sin iniciar sesión.</p>
+  <input id="term" class="form-control search-input mb-3" placeholder="Buscar término...">
+  <div id="listado"></div>
+</div>
+<script>
+const dic = [
+  {id:1,term:'Hipertensión',def:'Elevación sostenida de la presión arterial.',causas:'Genética, dieta alta en sal',trat:'Control de presión, dieta, medicación.'},
+  {id:2,term:'Gripe',def:'Infección respiratoria viral.',causas:'Virus Influenza',trat:'Reposo, líquidos, antipiréticos.'},
+  {id:3,term:'Diabetes',def:'Afección caracterizada por glucosa elevada.',causas:'Genética, obesidad',trat:'Control dietético, medicamentos.'}
+];
+function renderDic(list){
+  const c = document.getElementById('listado'); c.innerHTML='';
+  list.forEach(d=>{
+    const div = document.createElement('div'); div.className='card card-sr p-3 mb-2';
+    div.innerHTML = `<h5>${d.term}</h5><p class="small-muted">${d.def}</p><p class="mb-0"><strong>Causas:</strong> ${d.causas}<br><strong>Tratamiento:</strong> ${d.trat}</p>`;
+    c.appendChild(div);
+  });
+}
+renderDic(dic);
+document.getElementById('term').addEventListener('input', e=> renderDic(dic.filter(x=> x.term.toLowerCase().includes(e.target.value.toLowerCase()))));
+</script>
+
+<footer class="footer-sr mt-5">
+  <div class="container">
+    <div>© 2025 SaludRural — Telemedicina para zonas rurales</div>
+  </div>
+</footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

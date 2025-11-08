@@ -1,0 +1,14 @@
+
+:root{ --sr-green: #28a745; --sr-white: #ffffff; --card-radius: 12px; }
+body{ background: var(--sr-white); color:#0b0b0b; font-family: Arial, Helvetica, sans-serif;}
+.navbar-sr{ background: var(--sr-green); }
+.navbar-sr .nav-link, .navbar-sr .navbar-brand{ color: var(--sr-white) !important; }
+.header-hero{ background: linear-gradient(180deg, rgba(40,167,69,0.08), rgba(40,167,69,0.04)); padding:60px 0; }
+.card-sr{ border-radius: var(--card-radius); box-shadow: 0 6px 18px rgba(0,0,0,0.06); }
+.btn-sr{ background:var(--sr-green); color:var(--sr-white); border: none; }
+.section{ padding:40px 0; }
+.small-muted{ color: #6c757d; }
+.footer-sr{ padding:20px 0; text-align:center; color:#6c757d; }
+.search-input{ max-width:420px; }
+.medico-photo{ width:64px; height:64px; border-radius:8px; object-fit:cover; }
+.profile-header{ background:var(--sr-green); color:var(--sr-white); padding:18px; border-radius:12px 12px 0 0;}

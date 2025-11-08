@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Médico - Dashboard - SaludRural</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/custom.css">
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-sr navbar-dark">
+  <div class="container">
+    <a class="navbar-brand d-flex align-items-center" href="../index.html">
+      <img src="../assets/img/logo.svg" alt="SaludRural" style="height:36px;margin-right:8px;">
+      SaludRural
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="nav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="../explorar_medicos.html">Explorar médicos</a></li>
+        <li class="nav-item"><a class="nav-link" href="../diccionario.html">Diccionario</a></li>
+        <li class="nav-item">
+          <span class="nav-link" id="userInfo"></span>
+        </li>
+        <li class="nav-item">
+          <button class="btn btn-sm btn-outline-light" onclick="cerrarSesion()">Cerrar sesión</button>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="container section">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 id="welcomeMsg">Panel del médico</h2>
+      <p class="text-muted mb-0" id="userEmail"></p>
+    </div>
+  </div>
+
+  <!-- Estadísticas rápidas -->
+  <div class="row mb-4">
+    <div class="col-md-3">
+      <div class="card card-sr p-3 text-center">
+        <h3 class="mb-1" id="citasHoy">0</h3>
+        <small class="text-muted">Citas hoy</small>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card card-sr p-3 text-center">
+        <h3 class="mb-1" id="citasSemana">0</h3>
+        <small class="text-muted">Esta semana</small>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card card-sr p-3 text-center">
+        <h3 class="mb-1" id="totalPacientes">0</h3>
+        <small class="text-muted">Total pacientes</small>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card card-sr p-3 text-center">
+        <h3 class="mb-1" id="calificacion">4.8</h3>
+        <small class="text-muted">⭐ Calificación</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Columna izquierda -->
+    <div class="col-md-7">
+      <!-- Próximas citas -->
+      <div class="card card-sr p-3 mb-3">
+        <h5 class="mb-3">Próximas citas</h5>
+        <div id="loadingCitas" class="text-center py-3">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Cargando...</span>
+          </div>
+        </div>
+        <ul id="citas" class="list-group d-none"></ul>
+        <div id="noCitas" class="alert alert-info d-none">
+          No tienes citas programadas.
+        </div>
+      </div>
+
+      <!-- Buscar historial de paciente -->
+      <div class="card card-sr p-3">
+        <h5 class="mb-3">Buscar historia clínica de paciente</h5>
+        <div class="input-group mb-3">
+          <input id="buscarPaciente" class="form-control" placeholder="Ingrese ID del paciente" type="number">
+          <button id="btnBuscar" class="btn btn-sr">Buscar</button>
+        </div>
+        
+        <div id="historialPaciente"></div>
+      </div>
+    </div>
+
+    <!-- Columna derecha -->
+    <div class="col-md-5">
+      <!-- Mi perfil -->
+      <div class="card card-sr p-3 mb-3">
+        <h5 class="mb-3">Mi perfil profesional</h5>
+        <div id="miPerfil"></div>
+      </div>
+
+      <!-- Acciones rápidas -->
+      <div class="card card-sr p-3">
+        <h5 class="mb-3">Acciones rápidas</h5>
+        <div class="d-grid gap-2">
+          <button class="btn btn-outline-primary" onclick="gestionarAgenda()">
+            📅 Gestionar mi agenda
+          </button>
+          <button class="btn btn-outline-primary" onclick="verPacientes()">
+            👥 Ver mis pacientes
+          </button>
+          <button class="btn btn-outline-primary" onclick="verCalificaciones()">
+            ⭐ Mis calificaciones
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para agregar entrada a historia clínica -->
+<div class="modal fade" id="modalHistoria" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Agregar nota a historia clínica</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label">Diagnóstico</label>
+          <input class="form-control" id="diagnostico" placeholder="Diagnóstico">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Tratamiento</label>
+          <textarea class="form-control" id="tratamiento" rows="3" placeholder="Tratamiento prescrito"></textarea>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Notas adicionales</label>
+          <textarea class="form-control" id="notas" rows="3" placeholder="Observaciones"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn btn-sr" id="guardarNota">Guardar nota</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer class="footer-sr mt-5">
+  <div class="container">
+    <div>© 2025 SaludRural – Telemedicina para zonas rurales</div>
+  </div>
+</footer>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/js/api.js"></script>
+
+<script>
+// Verificar autenticación y rol
+if (!API.requireAuth() || !API.requireRole('Medico')) {
+  // requireAuth y requireRole ya redirigen si falla
+}
+
+// Obtener usuario actual
+const currentUser = API.getCurrentUser();
+let pacienteSeleccionado = null;
+
+// Mostrar información del usuario
+document.getElementById('welcomeMsg').textContent = `Bienvenido, Dr(a). ${currentUser.nombre}`;
+document.getElementById('userEmail').textContent = currentUser.correo;
+document.getElementById('userInfo').textContent = `Dr(a). ${currentUser.nombre}`;
+
+// Función para cerrar sesión
+function cerrarSesion() {
+  if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+    API.logout();
+  }
+}
+
+// Cargar perfil del médico
+async function cargarPerfil() {
+  const perfilEl = document.getElementById('miPerfil');
+  
+  try {
+    // Intentar obtener datos del médico
+    const medico = await API.Medicos.getById(currentUser.id_usuario);
+    
+    if (medico) {
+      perfilEl.innerHTML = `
+        <div class="d-flex gap-3 mb-3">
+          <img src="${medico.foto}" class="medico-photo" alt="">
+          <div>
+            <strong>${medico.nombre} ${medico.apellidos || ''}</strong><br>
+            <small class="text-muted">${medico.especialidad}</small>
+          </div>
+        </div>
+        <p class="small mb-2">${medico.descripcion}</p>
+        ${medico.experiencia ? `<p class="small text-muted mb-2">📋 ${medico.experiencia}</p>` : ''}
+        ${medico.licencia ? `<p class="small text-muted mb-0">🏥 Licencia: ${medico.licencia}</p>` : ''}
+      `;
+      
+      // Actualizar calificación
+      if (medico.rating) {
+        document.getElementById('calificacion').textContent = medico.rating;
+      }
+    } else {
+      perfilEl.innerHTML = `
+        <p><strong>${currentUser.nombre} ${currentUser.apellidos || ''}</strong></p>
+        <p class="small text-muted">Médico - ${currentUser.correo}</p>
+      `;
+    }
+  } catch (error) {
+    console.error('Error al cargar perfil:', error);
+    perfilEl.innerHTML = `
+      <p><strong>${currentUser.nombre}</strong></p>
+      <p class="small text-muted">${currentUser.correo}</p>
+    `;
+  }
+}
+
+// Cargar citas del médico
+async function cargarCitas() {
+  const loadingEl = document.getElementById('loadingCitas');
+  const listEl = document.getElementById('citas');
+  const noDataEl = document.getElementById('noCitas');
+
+  try {
+    const todasCitas = await API.Citas.getAll();
+    
+    // Filtrar citas de este médico
+    const misCitas = todasCitas.filter(c => 
+      c.id_medico === currentUser.id_usuario && 
+      c.estado !== 'Cancelada'
+    );
+    
+    loadingEl.classList.add('d-none');
+    
+    if (misCitas.length === 0) {
+      noDataEl.classList.remove('d-none');
+    } else {
+      listEl.classList.remove('d-none');
+      listEl.innerHTML = '';
+      
+      // Ordenar por fecha
+      misCitas.sort((a, b) => new Date(`${a.fecha} ${a.hora}`) - new Date(`${b.fecha} ${b.hora}`));
+      
+      // Calcular estadísticas
+      const hoy = new Date().toISOString().split('T')[0];
+      const citasHoy = misCitas.filter(c => c.fecha === hoy).length;
+      document.getElementById('citasHoy').textContent = citasHoy;
+      document.getElementById('citasSemana').textContent = misCitas.length;
+      
+      // Pacientes únicos
+      const pacientesUnicos = new Set(misCitas.map(c => c.id_paciente));
+      document.getElementById('totalPacientes').textContent = pacientesUnicos.size;
+      
+      // Renderizar citas
+      misCitas.forEach(cita => {
+        const li = document.createElement('li');
+        li.className = 'list-group-item';
+        
+        li.innerHTML = `
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <strong>Paciente ID: ${cita.id_paciente}</strong>
+              <br>
+              <small class="text-muted">📅 ${cita.fecha} - ${cita.hora}</small>
+              <br>
+              <small class="text-muted">📋 Motivo: ${cita.motivo || 'No especificado'}</small>
+              ${cita.sintomas ? `<br><small class="text-muted">💡 ${cita.sintomas}</small>` : ''}
+            </div>
+            <div>
+              <button class="btn btn-sm btn-sr" onclick="verDetallesCita(${cita.id})">
+                Ver detalles
+              </button>
+            </div>
+          </div>
+        `;
+        
+        listEl.appendChild(li);
+      });
+    }
+  } catch (error) {
+    console.error('Error al cargar citas:', error);
+    loadingEl.classList.add('d-none');
+    listEl.innerHTML = '<li class="list-group-item text-danger">Error al cargar citas</li>';
+    listEl.classList.remove('d-none');
+  }
+}
+
+// Ver detalles de cita
+function verDetallesCita(citaId) {
+  alert(`Funcionalidad de videollamada próximamente.\nCita ID: ${citaId}`);
+}
+
+// Buscar historial de paciente
+document.getElementById('btnBuscar').addEventListener('click', async () => {
+  const pacienteId = parseInt(document.getElementById('buscarPaciente').value);
+  const containerEl = document.getElementById('historialPaciente');
+  
+  if (!pacienteId) {
+    alert('Por favor ingrese un ID de paciente');
+    return;
+  }
+  
+  containerEl.innerHTML = '<div class="text-center"><div class="spinner-border"></div></div>';
+  
+  try {
+    const historial = await API.Historia.getByPaciente(pacienteId);
+    
+    containerEl.innerHTML = '';
+    
+    if (historial.length === 0) {
+      containerEl.innerHTML = '<div class="alert alert-info">No se encontraron registros para este paciente.</div>';
+    } else {
+      historial.forEach(reg => {
+        const div = document.createElement('div');
+        div.className = 'border rounded p-3 mb-2';
+        div.innerHTML = `
+          <strong>${reg.fecha}</strong> - <small class="text-muted">${reg.medico}</small>
+          ${reg.diagnostico ? `<p class="mb-1"><strong>Diagnóstico:</strong> ${reg.diagnostico}</p>` : ''}
+          ${reg.tratamiento ? `<p class="mb-1"><strong>Tratamiento:</strong> ${reg.tratamiento}</p>` : ''}
+          ${reg.notas ? `<p class="mb-0"><strong>Notas:</strong> ${reg.notas}</p>` : ''}
+        `;
+        containerEl.appendChild(div);
+      });
+    }
+    
+    // Botón para agregar nueva entrada
+    const btnAgregar = document.createElement('button');
+    btnAgregar.className = 'btn btn-sr w-100 mt-3';
+    btnAgregar.textContent = 'Agregar nueva entrada';
+    btnAgregar.onclick = () => mostrarModalHistoria(pacienteId);
+    containerEl.appendChild(btnAgregar);
+    
+    pacienteSeleccionado = pacienteId;
+    
+  } catch (error) {
+    console.error('Error al buscar historial:', error);
+    containerEl.innerHTML = '<div class="alert alert-danger">Error al cargar historial</div>';
+  }
+});
+
+// Mostrar modal para agregar entrada
+function mostrarModalHistoria(pacienteId) {
+  const modal = new bootstrap.Modal(document.getElementById('modalHistoria'));
+  modal.show();
+}
+
+// Guardar nota en historia clínica
+document.getElementById('guardarNota').addEventListener('click', async () => {
+  if (!pacienteSeleccionado) {
+    alert('No hay paciente seleccionado');
+    return;
+  }
+  
+  const diagnostico = document.getElementById('diagnostico').value.trim();
+  const tratamiento = document.getElementById('tratamiento').value.trim();
+  const notas = document.getElementById('notas').value.trim();
+  
+  if (!diagnostico && !tratamiento && !notas) {
+    alert('Por favor complete al menos un campo');
+    return;
+  }
+  
+  try {
+    await API.Historia.addEntrada(pacienteSeleccionado, {
+      medico: `Dr(a). ${currentUser.nombre}`,
+      diagnostico,
+      tratamiento,
+      notas
+    });
+    
+    alert('Nota agregada exitosamente');
+    
+    // Limpiar campos
+    document.getElementById('diagnostico').value = '';
+    document.getElementById('tratamiento').value = '';
+    document.getElementById('notas').value = '';
+    
+    // Cerrar modal
+    bootstrap.Modal.getInstance(document.getElementById('modalHistoria')).hide();
+    
+    // Recargar historial
+    document.getElementById('btnBuscar').click();
+    
+  } catch (error) {
+    alert('Error al guardar nota: ' + error.message);
+  }
+});
+
+// Funciones de acciones rápidas
+function gestionarAgenda() {
+  alert('Funcionalidad de gestión de agenda próximamente');
+}
+
+function verPacientes() {
+  alert('Funcionalidad de lista de pacientes próximamente');
+}
+
+function verCalificaciones() {
+  alert('Funcionalidad de calificaciones próximamente');
+}
+
+// Cargar datos al iniciar
+document.addEventListener('DOMContentLoaded', () => {
+  cargarPerfil();
+  cargarCitas();
+});
+</script>
+
+</body>
+</html>
